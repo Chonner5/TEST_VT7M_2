@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">TEST_VT7M_2</string>
+    <string name="switch1">启用电源键</string>
+    <string name="switch2">显示重启键</string>
+    <string name="switch3">显示虚拟按键</string>
+    <string name="switch4">显示按键背光</string>
+    <string name="switch5">进入安全模式</string>
+    <string name="switch6">开启ACC</string>
+    <string name="switch7">acc_sleep_switch</string>
+    <string name="switch8">acc_sleep_delay</string>
+    <string name="switch9">acc_shutdown_switch </string>
+    <string name="button1">app_self </string>
+    <string name="textView1">请把 apns-conf.xml 拷贝到SD卡的根目录 </string>
+
+</resources>
