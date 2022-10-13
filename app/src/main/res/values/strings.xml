@@ -10,6 +10,11 @@
     <string name="switch8">acc_sleep_delay</string>
     <string name="switch9">acc_shutdown_switch </string>
     <string name="button1">app_self </string>
+    <string name="button2">apk_start </string>
+    <string name="button3">open_color </string>
+    <string name="button4">关机</string>
+    <string name="button5">delete</string>
     <string name="textView1">请把 apns-conf.xml 拷贝到SD卡的根目录 </string>
+    <string name="textView2">请把 com.demo.test3 拷贝到SD卡的根目录 </string>
 
 </resources>

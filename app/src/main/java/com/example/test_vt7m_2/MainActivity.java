@@ -13,18 +13,19 @@ import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.TextView;
+
+
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.FileInputStream;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.util.List;
+
+
 
 
 public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
@@ -37,8 +38,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
     public  SwitchCompat sw7;
     public  SwitchCompat sw8;
     public  SwitchCompat sw9;
-    public Button bt1;
-    TextView tv_sdcard,tv_usb;
+    public Button bt1,bt2,bt3,bt4,bt5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         sw8 = findViewById(R.id.switch8);
         sw9 = findViewById(R.id.switch9);
         bt1 = findViewById(R.id.button1);
+        bt2 = findViewById(R.id.button2);
+        bt3 = findViewById(R.id.button3);
+        bt4 = findViewById(R.id.button4);
+        bt5 = findViewById(R.id.button5);
+
 //        SwitchCompat sw3 = findViewById(R.id.switch3);
 //        SwitchCompat sw4 = findViewById(R.id.switch4);
 
@@ -68,10 +73,14 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         sw9.setOnCheckedChangeListener((CompoundButton.OnCheckedChangeListener) this);
 
 
+        String SD_path = getStoragePath(MainActivity.this,true);    //获取SD卡的路径
+
+
+
+        //点击向指定文件写入
         bt1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String SD_path = getStoragePath(MainActivity.this,true);    //获取SD卡的路径
                 //Toast.makeText(MainActivity.this,SD_path,Toast.LENGTH_LONG).show();
                 createFile("sdcard/Apns/etc/");           //创建文件夹
                 copyFile(SD_path+"/apns-conf.xml","sdcard/Apns/etc/apns-conf.xml");//从外部SD卡copy -> 内部
@@ -81,6 +90,54 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
 
 
 
+        //点击安装指定软件
+        bt2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String wirte_bao = "com.demo.test3/com.demo.test3.MainActivity";
+                String file_path = "apd/";                   //后续根据需求要改目录
+
+                createFile(file_path+"default_launcher.txt");           //创建文件
+                writeTxtToFile(wirte_bao,file_path,"default_launcher.txt");
+
+                //app-release.apk
+                //copyFile(SD_path+"/app-release.apk",file_path+"app-release.apk");//从外部SD卡copy -> 内部
+
+                Toast.makeText(MainActivity.this,wirte_bao,Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+        //点击后跳转到COLOR界面
+        bt3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String[] eCommand = {"am start -n com.android.settings/.display.ColorTemperatureActivity" + "\n",};
+                ShellUtils.CommandResult su = ShellUtils.execCommand(eCommand, false, true);
+                Toast.makeText(MainActivity.this,su.successMsg,Toast.LENGTH_LONG).show();
+            }
+        });
+
+        //关机键
+        bt4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String[] eCommand = {"reboot -p" + "\n",};
+                ShellUtils.execCommand(eCommand, false, true);
+                //Toast.makeText(MainActivity.this,power_msg.successMsg,Toast.LENGTH_LONG).show();
+            }
+        });
+
+        //删除键
+        bt5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                String file_path = "/apd/";
+                String[] eCommand = {"rm -f /apd/default_launcher.txt" + "\n",};
+                ShellUtils.execCommand(eCommand, false, true);
+                Toast.makeText(MainActivity.this,"已删除",Toast.LENGTH_LONG).show();
+            }
+        });
 
 
 
@@ -261,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
                 break;
         }
     }
-    //--------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------
 
     /**
      * 通过反射调用获取内置存储和外置sd卡根路径(通用)
@@ -285,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
             for (int i = 0; i < Array.getLength(result); i++) {
                 Object storageVolumeElement = Array.get(result, i);
                 path = (String) getPath.invoke(storageVolumeElement);
-                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
+                boolean removable = (Boolean)isRemovable.invoke(storageVolumeElement);
                 if (is_removale == removable) {
                     return path;
                 }
@@ -296,14 +353,14 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         return path;
     }
 
-    //-------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------
     /**
      * 创建文件或文件夹   加点就是创建文件，不加就是创建目录
      *
      * @param fileName
      *            文件名或问文件夹名
      */
-    public void createFile(String fileName) {
+    public static void createFile(String fileName) {
         File file = new File(fileName);
         //Toast.makeText(MainActivity.this,inside_storage_path+fileName,Toast.LENGTH_LONG).show();
         if (fileName.indexOf(".") != -1) {
@@ -324,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
         }
 
     }
-    //-------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------------
     /**
      * 复制单个文件
      *
@@ -371,5 +428,38 @@ public class MainActivity extends AppCompatActivity implements CompoundButton.On
             return false;
         }
     }
+
+
+
+    /**
+     * 写内容到指定文件    文件不会自动创建目录，加入createFile() 后就可以
+     *
+     * @param strcontent String 写入文件的内容
+     * @param filePath String 文件目录
+     * @param fileName String 文件名
+     *
+     *
+     */
+    public static void writeTxtToFile(String strcontent, String filePath, String fileName) {
+        //createFile(filePath);
+        String strFilePath = filePath + fileName;
+        String strContent = strcontent + "\r\n";
+        try {
+            File file = new File(strFilePath);
+            if (!file.exists()) {
+                //Log.d(TAG, "Create the file:" + strFilePath);
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            }
+            RandomAccessFile raf = new RandomAccessFile(file, "rwd");
+            raf.seek(file.length());
+            raf.write(strContent.getBytes());
+            raf.close();
+        } catch (Exception e) {
+            //Log.e(TAG, "Error on write File:" + e);
+        }
+    }
+
+
 
 }
